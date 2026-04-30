@@ -70,6 +70,23 @@ Batch shape: (32, 224, 224, 3) — Pixel range: [0.0, 1.0]
 
 ---
 
+## Results
+
+| Model | Val Accuracy | Val Loss | Epochs | Status |
+|---|---|---|---|---|
+| Custom CNN | 93.48% | 0.2193 | 21 | Done |
+| EfficientNetB0 | — | — | — | Pending |
+| ResNet50 | — | — | — | Pending |
+
+### Custom CNN
+- Built from scratch with 4 conv blocks (32 → 64 → 128 → 256 filters)
+- Training accuracy: 97.52% / Validation accuracy: 93.48%
+- Ran 21 epochs (~50 min on CPU), EarlyStopping triggered at epoch 21
+- ~4% gap between train and val accuracy indicates minor overfitting, expected for a model with no pretrained weights
+- Saved to `custom_cnn_model.keras`
+
+---
+
 ## Evaluation Metrics
 
 All three models are evaluated using:
