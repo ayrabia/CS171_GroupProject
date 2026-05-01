@@ -19,11 +19,11 @@ def build_custom_cnn(input_shape=(224, 224, 3), num_classes=4):
 
     model = models.Sequential([
 
-        # ── Input ───────────────────────────────────────────────────────────────
+        # Input
         # Tells the model to expect images of shape (224, 224, 3)
         layers.Input(shape=input_shape),
 
-        # ── Block 1 ─────────────────────────────────────────────────────────────
+        # Block 1
         # Conv2D: applies 32 filters (3x3) that slide across the image.
         # Each filter learns to detect a different low-level feature (edges, curves).
         # padding='same' keeps the output the same size as the input.
@@ -41,7 +41,7 @@ def build_custom_cnn(input_shape=(224, 224, 3), num_classes=4):
         # Forces the model to not rely on any single neuron — reduces overfitting.
         layers.Dropout(0.25),
 
-        # ── Block 2 ─────────────────────────────────────────────────────────────
+        # Block 2
         # 64 filters now — the model looks for more complex patterns built on
         # the features detected in block 1 (e.g. combinations of edges = shapes).
         layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
@@ -49,14 +49,14 @@ def build_custom_cnn(input_shape=(224, 224, 3), num_classes=4):
         layers.MaxPooling2D(pool_size=(2, 2)),
         layers.Dropout(0.25),
 
-        # ── Block 3 ─────────────────────────────────────────────────────────────
+        # Block 3
         # 128 filters — even higher-level features like tumor boundaries or textures.
         layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
         layers.BatchNormalization(),
         layers.MaxPooling2D(pool_size=(2, 2)),
         layers.Dropout(0.25),
 
-        # ── Block 4 ─────────────────────────────────────────────────────────────
+        # Block 4
         # 256 filters — the deepest feature extraction layer.
         # By this point the image has been shrunk significantly by the pooling layers,
         # but each remaining unit represents a rich, high-level feature.
@@ -65,7 +65,7 @@ def build_custom_cnn(input_shape=(224, 224, 3), num_classes=4):
         layers.MaxPooling2D(pool_size=(2, 2)),
         layers.Dropout(0.25),
 
-        # ── Classifier head ─────────────────────────────────────────────────────
+        # classifier
         # Flatten: converts the 3D feature maps (height x width x filters) into
         # a single 1D vector so we can feed it into fully connected layers.
         layers.Flatten(),
@@ -88,7 +88,7 @@ def build_custom_cnn(input_shape=(224, 224, 3), num_classes=4):
     return model
 
 
-# ── Compile the model ──────────────────────────────────────────────────────────
+#compile model
 
 def compile_model(model):
     """
@@ -96,7 +96,7 @@ def compile_model(model):
     """
 
     model.compile(
-        # Adam: an adaptive learning rate optimizer — one of the most widely used.
+        # Adam: an adaptive learning rate optimizer
         # It adjusts how big each weight update is based on recent gradient history,
         # which makes training faster and more stable than plain gradient descent.
         # lr=0.001 is the standard starting learning rate for Adam.
@@ -114,7 +114,7 @@ def compile_model(model):
     return model
 
 
-# ── Callbacks ─────────────────────────────────────────────────────────────────
+# callbacks
 
 def get_callbacks():
     """
@@ -146,7 +146,7 @@ def get_callbacks():
     return [early_stopping, reduce_lr]
 
 
-# ── Train ──────────────────────────────────────────────────────────────────────
+# ── Train 
 
 def train():
     """
