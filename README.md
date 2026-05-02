@@ -48,9 +48,42 @@ Three models are implemented and compared using TensorFlow/Keras:
 
 ## Preprocessing
 
-- Resize all images to a uniform input size
-- Normalize pixel values
-- Apply data augmentation to improve generalization
+All preprocessing is handled in `preprocessing.py` via a shared `get_data_loaders()` function imported by all three models, ensuring a fair apples-to-apples comparison.
+
+| Step | Detail |
+|---|---|
+| Resize | All images resized to 224×224 (matches EfficientNetB0 and ResNet50 ImageNet pretraining size) |
+| Normalize | Pixel values scaled from [0, 255] to [0.0, 1.0] |
+| Augmentation | Horizontal flip, ±10° rotation, ±10% zoom, ±10% brightness — training set only |
+| Train/Val split | 80/20 split from the Training folder (4,480 train / 1,120 validation) |
+| Test set | Kept completely separate — only used for final evaluation |
+| Batch size | 32 images per batch |
+
+**Verified output:**
+```
+Classes: ['glioma', 'meningioma', 'notumor', 'pituitary']
+Training batches : 140  (4480 images)
+Validation batches: 35  (1120 images)
+Test batches     : 50  (1600 images)
+Batch shape: (32, 224, 224, 3) — Pixel range: [0.0, 1.0]
+```
+
+---
+
+## Results
+
+| Model | Val Accuracy | Val Loss | Epochs | Status |
+|---|---|---|---|---|
+| Custom CNN | 93.48% | 0.2193 | 21 | Done |
+| EfficientNetB0 | — | — | — | Pending |
+| ResNet50 | — | — | — | Pending |
+
+### Custom CNN
+- Built from scratch with 4 conv blocks (32 → 64 → 128 → 256 filters)
+- Training accuracy: 97.52% / Validation accuracy: 93.48%
+- Ran 21 epochs (~50 min on CPU), EarlyStopping triggered at epoch 21
+- ~4% gap between train and val accuracy indicates minor overfitting, expected for a model with no pretrained weights
+- Saved to `custom_cnn_model.keras`
 
 ---
 
