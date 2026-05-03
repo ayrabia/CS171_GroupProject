@@ -72,18 +72,36 @@ Batch shape: (32, 224, 224, 3) — Pixel range: [0.0, 1.0]
 
 ## Results
 
-| Model | Val Accuracy | Val Loss | Epochs | Status |
+| Model | Test Accuracy | Macro F1 | Val Accuracy | Epochs |
 |---|---|---|---|---|
-| Custom CNN | 93.48% | 0.2193 | 21 | Done |
-| EfficientNetB0 | — | — | — | Pending |
-| ResNet50 | — | — | — | Pending |
+| Custom CNN | 89.06% | 0.8882 | 93.48% | 21 |
+| EfficientNetB0 | 92.62% | 0.9244 | 96.25% | 10 + 20 |
+| ResNet50 | **94.81%** | **0.9473** | 98.04% | 10 + 20 |
 
 ### Custom CNN
 - Built from scratch with 4 conv blocks (32 → 64 → 128 → 256 filters)
-- Training accuracy: 97.52% / Validation accuracy: 93.48%
+- Training accuracy: 97.52% / Validation accuracy: 93.48% / Test accuracy: 89.06%
 - Ran 21 epochs (~50 min on CPU), EarlyStopping triggered at epoch 21
 - ~4% gap between train and val accuracy indicates minor overfitting, expected for a model with no pretrained weights
 - Saved to `custom_cnn_model.keras`
+
+### EfficientNetB0
+- ImageNet-pretrained, fine-tuned with two-phase training (freeze base → unfreeze all)
+- Phase 1: 10 epochs (lr=0.001, base frozen) / Phase 2: 20 epochs (lr=1e-5, full fine-tune)
+- Validation accuracy: 96.25% / Test accuracy: 92.62% / Macro F1: 0.9244
+- Saved to `efficientnet_model.keras`
+
+### ResNet50
+- ImageNet-pretrained 50-layer residual network, same two-phase training as EfficientNetB0
+- Validation accuracy: 98.04% / Test accuracy: 94.81% / Macro F1: 0.9473
+- Best performing model — residual connections allow deeper feature extraction
+- Glioma recall improved to 84% vs 78% for the other two models
+- Saved to `resnet50_model.keras`
+
+### Key Observations
+- Glioma had the lowest recall across all three models (78%, 78%, 84%) due to visual similarity with meningioma — not a class imbalance issue, as all classes are fairly balanced (23–28% each)
+- No Tumor and Pituitary were near-perfect for both pretrained models
+- Transfer learning from ImageNet provided significant gains even for medical imaging
 
 ---
 
