@@ -131,6 +131,6 @@ All three models are evaluated using:
 | Milestone | Date |
 |---|---|
 | Project Proposal | April 15, 2026 |
-| Dataset preprocessing & model development | Ongoing |
+| Dataset preprocessing & model development | May 2, 2026 |
 | Source code & final report submission | May 11, 2026 |
-| Final presentation | TBD |
+| Final presentation | May 4, 2026 |
