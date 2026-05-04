@@ -26,11 +26,11 @@ MRI scans are the primary diagnostic tool for detecting brain tumors, but manual
 
 | Class | Train | Test |
 |---|---|---|
-| Glioma | 1,321 | 300 |
-| Meningioma | 1,339 | 306 |
-| No Tumor | 1,595 | 405 |
-| Pituitary | 1,457 | 300 |
-| **Total** | **5,712** | **1,311** |
+| Glioma | 1,400 | 400 |
+| Meningioma | 1,400 | 400 |
+| No Tumor | 1,400 | 400 |
+| Pituitary | 1,400 | 400 |
+| **Total** | **5,600** | **1,600** |
 
 Source: https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset
 
