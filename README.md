@@ -1,6 +1,6 @@
 # Brain Tumor MRI Classification
 
-CS-171 Final Project
+CS171 Final Project
 
 **Team Members:**
 - Sean Elopre (016139292)
