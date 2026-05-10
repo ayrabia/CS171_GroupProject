@@ -36,72 +36,88 @@ Source: https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset
 
 ---
 
+## Notebook
+
+All training, evaluation, and plot generation is contained in a single Colab notebook:
+
+**`BrainTumorMRI_Notebook.ipynb`**
+
+Run on Google Colab with a T4 GPU (`Runtime → Change runtime type → T4`). The notebook trains all three models sequentially, generates all training curves, confusion matrices, and class distribution plots, and saves everything to Google Drive.
+
+---
+
 ## Models
 
 Three models are implemented and compared using TensorFlow/Keras:
 
 1. **Custom CNN** — Baseline convolutional network built from scratch to establish a performance floor.
-2. **EfficientNetB0** — ImageNet-pretrained model fine-tuned for this dataset; chosen for its strong accuracy-to-parameter ratio.
+2. **EfficientNetB0** — ImageNet-pretrained model fine-tuned using a two-phase transfer learning strategy.
 3. **ResNet50** — Deeper residual network pretrained on ImageNet; uses skip connections to mitigate vanishing gradients.
 
 ---
 
 ## Preprocessing
 
-All preprocessing is handled in `preprocessing.py` via a shared `get_data_loaders()` function imported by all three models, ensuring a fair apples-to-apples comparison.
+All preprocessing is handled inside the notebook via a shared pipeline used by all three models, ensuring a fair apples-to-apples comparison.
 
 | Step | Detail |
 |---|---|
-| Resize | All images resized to 224×224 (matches EfficientNetB0 and ResNet50 ImageNet pretraining size) |
+| Resize | All images resized to 224×224 (matches ImageNet pretraining size) |
 | Normalize | Pixel values scaled from [0, 255] to [0.0, 1.0] |
 | Augmentation | Horizontal flip, ±10° rotation, ±10% zoom, ±10% brightness — training set only |
 | Train/Val split | 80/20 split from the Training folder (4,480 train / 1,120 validation) |
 | Test set | Kept completely separate — only used for final evaluation |
 | Batch size | 32 images per batch |
+| Seed | 42 (fixed for reproducibility) |
 
-**Verified output:**
-```
-Classes: ['glioma', 'meningioma', 'notumor', 'pituitary']
-Training batches : 140  (4480 images)
-Validation batches: 35  (1120 images)
-Test batches     : 50  (1600 images)
-Batch shape: (32, 224, 224, 3) — Pixel range: [0.0, 1.0]
-```
+---
+
+## Model Architectures
+
+### Custom CNN
+- 4 convolutional blocks: 32 → 64 → 128 → 256 filters
+- Each block: Conv2D(relu) → BatchNorm → MaxPooling(2×2) → Dropout(0.25)
+- Head: Flatten → Dense(512, relu) → BatchNorm → Dropout(0.5) → Dense(4, softmax)
+- Single-phase training, max 30 epochs, EarlyStopping (patience=5)
+
+### EfficientNetB0
+- ImageNet-pretrained base with two-phase fine-tuning
+- Rescaling(255.0) layer inserted before the base — EfficientNetB0 has built-in normalization expecting [0,255] input; without this the model is stuck at random-chance accuracy (~25%)
+- Head: GlobalAveragePooling2D → Dropout(0.3) → Dense(128, relu) → Dropout(0.2) → Dense(4, softmax)
+- Phase 1: base frozen, 10 epochs, lr=0.001
+- Phase 2: base unfrozen, 20 epochs, lr=1e-5
+
+### ResNet50
+- ImageNet-pretrained 50-layer residual network with two-phase fine-tuning
+- Rescaling(255.0) + per-channel ImageNet mean subtraction (Normalization layer)
+- Head: GlobalAveragePooling2D → Dropout(0.3) → Dense(256, relu) → BatchNorm → Dropout(0.2) → Dense(4, softmax)
+- Phase 1: base frozen, 10 epochs, lr=0.001
+- Phase 2: base unfrozen, 20 epochs, lr=1e-5
 
 ---
 
 ## Results
 
-| Model | Test Accuracy | Macro F1 | Val Accuracy | Epochs |
-|---|---|---|---|---|
-| Custom CNN | 89.06% | 0.8882 | 93.48% | 21 |
-| EfficientNetB0 | 92.62% | 0.9244 | 96.25% | 10 + 20 |
-| ResNet50 | **94.81%** | **0.9473** | 98.04% | 10 + 20 |
+| Model | Test Accuracy | Macro F1 |
+|---|---|---|
+| Custom CNN | 84.31% | 0.8380 |
+| EfficientNetB0 | 90.56% | 0.9035 |
+| **ResNet50** | **93.50%** | **0.9336** |
 
-### Custom CNN
-- Built from scratch with 4 conv blocks (32 → 64 → 128 → 256 filters)
-- Training accuracy: 97.52% / Validation accuracy: 93.48% / Test accuracy: 89.06%
-- Ran 21 epochs (~50 min on CPU), EarlyStopping triggered at epoch 21
-- ~4% gap between train and val accuracy indicates minor overfitting, expected for a model with no pretrained weights
-- Saved to `custom_cnn_model.keras`
+### Per-Class Results
 
-### EfficientNetB0
-- ImageNet-pretrained, fine-tuned with two-phase training (freeze base → unfreeze all)
-- Phase 1: 10 epochs (lr=0.001, base frozen) / Phase 2: 20 epochs (lr=1e-5, full fine-tune)
-- Validation accuracy: 96.25% / Test accuracy: 92.62% / Macro F1: 0.9244
-- Saved to `efficientnet_model.keras`
-
-### ResNet50
-- ImageNet-pretrained 50-layer residual network, same two-phase training as EfficientNetB0
-- Validation accuracy: 98.04% / Test accuracy: 94.81% / Macro F1: 0.9473
-- Best performing model — residual connections allow deeper feature extraction
-- Glioma recall improved to 84% vs 78% for the other two models
-- Saved to `resnet50_model.keras`
+| Class | CNN P/R/F1 | EfficientNetB0 P/R/F1 | ResNet50 P/R/F1 |
+|---|---|---|---|
+| Glioma | 0.96 / 0.62 / 0.75 | 0.98 / 0.77 / 0.86 | 0.99 / 0.80 / 0.89 |
+| Meningioma | 0.76 / 0.79 / 0.77 | 0.88 / 0.86 / 0.87 | 0.89 / 0.94 / 0.91 |
+| No Tumor | 0.78 / 0.99 / 0.87 | 0.88 / 0.99 / 0.94 | 0.91 / 1.00 / 0.95 |
+| Pituitary | 0.93 / 0.97 / 0.95 | 0.90 / 0.99 / 0.94 | 0.96 / 1.00 / 0.98 |
 
 ### Key Observations
-- Glioma had the lowest recall across all three models (78%, 78%, 84%) due to visual similarity with meningioma — not a class imbalance issue, as all classes are fairly balanced (23–28% each)
+- Glioma had the lowest recall across all three models (62%, 77%, 80%) due to visual similarity with Meningioma — not a class imbalance issue, as all classes are balanced at 25% each
 - No Tumor and Pituitary were near-perfect for both pretrained models
-- Transfer learning from ImageNet provided significant gains even for medical imaging
+- Transfer learning from ImageNet provided significant gains over the from-scratch baseline (~6–9% test accuracy improvement)
+- ResNet50 outperformed EfficientNetB0 across all metrics
 
 ---
 
@@ -111,18 +127,8 @@ All three models are evaluated using:
 
 - Accuracy
 - Per-class Precision and Recall
-- Macro F1-score (primary metric — accounts for class imbalance and differing clinical costs of misclassification)
+- Macro F1-score (primary metric — treats all classes equally)
 - Confusion matrices
-
----
-
-## Objectives
-
-1. Preprocess the dataset for model training
-2. Implement and train all three deep learning models
-3. Compare model performance across all evaluation metrics
-4. Identify the best-performing architecture as a potential clinical decision support tool
-5. Analyze misclassification patterns across tumor types
 
 ---
 
