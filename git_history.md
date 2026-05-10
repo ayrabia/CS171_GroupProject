@@ -161,16 +161,12 @@ Files added: `BrainTumorMRI_Notebook.ipynb`
 
 ---
 
-**`8abcc01` — Add instructor comments to notebook; update README and repo structure**
+**`8abcc01` — Clean up repo and finalize notebook**
 Date: May 10, 2026
 
-- Added explanatory comments to all 17 code cells covering: seeds and reproducibility,
-  preprocessing design decisions, transfer learning strategy, EfficientNetB0/ResNet50
-  input normalization contracts, callback rationale, and evaluation methodology
-- Updated README with final test results, per-class precision/recall/F1, and
-  architecture details for all three models
-- Added class_distribution.png and sample_images.png for the written report
-- Removed standalone .py model files — all code now lives in the notebook
+Added code comments throughout the notebook, updated README with final results,
+added figures for the report, and removed the old standalone .py files since
+everything is now in the notebook.
 
 Files modified/removed: `BrainTumorMRI_Notebook.ipynb`, `README.md`,
 `custom_cnn.py` (deleted), `efficientnet_model.py` (deleted),
